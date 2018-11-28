@@ -20,6 +20,15 @@ bool OpenKey(HKEY mainKey, LPCWSTR lpSubKey, HKEY &hKey)
 	return (result == ERROR_SUCCESS);
 }
 
+bool CreateValue(HKEY &hKey,LPCWSTR lpValueName,DWORD dwType,LPCVOID data,DWORD length)
+{
+	LSTATUS result;
+	result = RegSetKeyValue(hKey,L"", lpValueName, dwType, data, length);
+	//result = RegSetValueEx(hKey,lpValueName,0, REG_SZ,data, 7 * sizeof(WCHAR))
+	//result = RegSetValue(hKey, lpValueName,REG_SZ, L"Message", 7 * sizeof(WCHAR));
+	return (result == ERROR_SUCCESS);
+}
+
 bool CreateKey(HKEY mainKey,LPCWSTR lpSubKey,HKEY &hKey)
 {
 	LSTATUS result;
@@ -32,19 +41,32 @@ bool CreateKey(HKEY mainKey,LPCWSTR lpSubKey,HKEY &hKey)
 int main()
 {
 	HKEY hKey = NULL;
-	
+	DWORD dw32 = 13;
+	DWORD64 dw64 = 123;
 	//создание ключа
-	cout << CreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4",hKey) << endl;
+	if (CreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4", hKey))
+		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was created" << endl;
+	else
+		cout << "Cannot create key" << endl;
+	getchar();
 	//открытие ключа
-	cout << OpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4", hKey) << endl;
-	//закрытие ключа
-	cout << CloseKey(hKey) << endl;
+	if (OpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4", hKey))
+		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was oppened"<<endl;
+	else
+		cout << "Cannot open key" << endl;
+	getchar();
+	//добавление значения по умолчанию
+	if (CreateValue(hKey, L"", REG_SZ, (LPCVOID)L"Default", (wcslen(L"Default") * sizeof(WCHAR))+1) )
+		cout << "Default value was changed" << endl;
+	else
+		cout << "Cannot change default value" << endl;
+	getchar;
+	//добавление остальных значений
+	CreateValue(hKey, L"STRING", REG_SZ, (LPCVOID)L"SomeString", (wcslen(L"SomeString") * sizeof(WCHAR))+1 );
+	CreateValue(hKey, L"DWORD", REG_DWORD, (LPCVOID)&dw32, sizeof(DWORD));
+	CreateValue(hKey, L"QWORD", REG_QWORD, (LPCVOID)&dw64, sizeof(DWORD64));
 	
-	/*
-	//Создаёт подраздел + значение по умолчанию
-	LSTATUS status0 = RegSetValue(hKey, L"Test", REG_SZ, L"Message", 7 * sizeof(WCHAR));
-	//Удаление - как у раздела
-
+/*
 	BYTE* data = (BYTE*)calloc(4, 1);
 	data[1] = 1;
 	//Создаёт пару ключ-значение
@@ -60,6 +82,9 @@ int main()
 		++iIndex;
 	}*/
 	//RegCloseKey(hKey);
+
+	//закрытие ключа
+	cout << CloseKey(hKey) << endl;
 
 	cout << "Complete" << endl;
 }
