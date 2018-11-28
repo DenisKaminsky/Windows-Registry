@@ -64,6 +64,8 @@ int main()
 	//добавление остальных значений
 	CreateValue(hKey, L"STRING", REG_SZ, (LPCVOID)L"SomeString", (wcslen(L"SomeString") * sizeof(WCHAR))+1 );
 	CreateValue(hKey, L"DWORD", REG_DWORD, (LPCVOID)&dw32, sizeof(DWORD));
+	CreateValue(hKey, L"DWORD_BE", REG_DWORD_BIG_ENDIAN, (LPCVOID)&dw32, sizeof(DWORD));
+	CreateValue(hKey, L"BINARY", REG_BINARY, (LPCVOID)&dw32, sizeof(DWORD));
 	CreateValue(hKey, L"QWORD", REG_QWORD, (LPCVOID)&dw64, sizeof(DWORD64));
 	
 /*
