@@ -6,6 +6,13 @@
 
 using namespace std;
 
+wstring toLowerCase(wstring str)
+{
+	for (int i = 0; i < str.length(); i++)
+		str[i] = towlower(str[i]);
+	return str;
+}
+
 bool CloseKey(HKEY &hKey)
 {
 	LSTATUS result;
@@ -38,17 +45,17 @@ bool CreateKey(HKEY mainKey,LPCWSTR lpSubKey,HKEY &hKey)
 	return (result == ERROR_SUCCESS);
 }
 
-void GetKeys(HKEY &hKey)
+void GetKeys(HKEY &hKey,LPWSTR searchStr)
 {
 	DWORD index = 0;
 	DWORD length = BUFFER_LENGTH+1;
 	LPWSTR buffer = (LPWSTR)calloc(length-1, sizeof(WCHAR));
-
+	
 	while (RegEnumKeyEx(hKey, index, buffer,&length, NULL, NULL, NULL, NULL) == ERROR_SUCCESS)
-	{
+	{		
 		length = BUFFER_LENGTH+1;
-
-		wcout << buffer << endl;
+		if(wcsstr(toLowerCase(buffer).c_str(), toLowerCase(searchStr).c_str()) != NULL)
+			wcout << buffer << endl;
 		index++;
 	}
 }
@@ -84,13 +91,14 @@ int main()
 	CreateValue(hKey, L"BINARY", REG_BINARY, (LPCVOID)&dw32, sizeof(DWORD));
 	CreateValue(hKey, L"QWORD", REG_QWORD, (LPCVOID)&dw64, sizeof(DWORD64));
 	//поиск ключа(выборка)
+	cout << "Search keys with 'os':" << endl;
 	OpenKey(HKEY_CURRENT_USER, L"SOFTWARE", tmp);
-	GetKeys(tmp);
+	GetKeys(tmp,L"os");
 	CloseKey(tmp);
 	getchar();
 	//закрытие ключа
 	if (CloseKey(hKey))
-		cout << "Key was closed" << endl;
+		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was closed" << endl;
 	else
 		cout << "Cannot close key" << endl;
 
