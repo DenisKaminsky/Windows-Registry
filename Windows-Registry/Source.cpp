@@ -12,6 +12,10 @@ wstring toLowerCase(wstring str)
 		str[i] = towlower(str[i]);
 	return str;
 }
+void GetFlags()
+{
+	system("REG FLAGS HKLM\\Software");
+}
 
 bool CloseKey(HKEY &hKey)
 {
@@ -65,7 +69,7 @@ int main()
 	HKEY hKey = NULL,tmp = NULL;
 	DWORD dw32 = 13;
 	DWORD64 dw64 = 123;
-
+	
 	//создание ключа
 	if (CreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4", hKey))
 		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was created" << endl;
@@ -96,11 +100,14 @@ int main()
 	GetKeys(tmp,L"os");
 	CloseKey(tmp);
 	getchar();
+	//чтение маски
+	cout << "Flags of HKLM/SOFTWARE:" << endl;
+	GetFlags();
 	//закрытие ключа
 	if (CloseKey(hKey))
 		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was closed" << endl;
 	else
 		cout << "Cannot close key" << endl;
-
+		
 	cout << "Complete" << endl;
 }
