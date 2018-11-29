@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <iostream>
 
+#define BUFFER_LENGTH 50;
+
 using namespace std;
 
 bool CloseKey(HKEY &hKey)
@@ -24,8 +26,6 @@ bool CreateValue(HKEY &hKey,LPCWSTR lpValueName,DWORD dwType,LPCVOID data,DWORD 
 {
 	LSTATUS result;
 	result = RegSetKeyValue(hKey,L"", lpValueName, dwType, data, length);
-	//result = RegSetValueEx(hKey,lpValueName,0, REG_SZ,data, 7 * sizeof(WCHAR))
-	//result = RegSetValue(hKey, lpValueName,REG_SZ, L"Message", 7 * sizeof(WCHAR));
 	return (result == ERROR_SUCCESS);
 }
 
@@ -38,11 +38,27 @@ bool CreateKey(HKEY mainKey,LPCWSTR lpSubKey,HKEY &hKey)
 	return (result == ERROR_SUCCESS);
 }
 
+void GetKeys(HKEY &hKey)
+{
+	DWORD index = 0;
+	DWORD length = BUFFER_LENGTH+1;
+	LPWSTR buffer = (LPWSTR)calloc(length-1, sizeof(WCHAR));
+
+	while (RegEnumKeyEx(hKey, index, buffer,&length, NULL, NULL, NULL, NULL) == ERROR_SUCCESS)
+	{
+		length = BUFFER_LENGTH+1;
+
+		wcout << buffer << endl;
+		index++;
+	}
+}
+
 int main()
 {
-	HKEY hKey = NULL;
+	HKEY hKey = NULL,tmp = NULL;
 	DWORD dw32 = 13;
 	DWORD64 dw64 = 123;
+
 	//создание ключа
 	if (CreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4", hKey))
 		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was created" << endl;
@@ -60,33 +76,23 @@ int main()
 		cout << "Default value was changed" << endl;
 	else
 		cout << "Cannot change default value" << endl;
-	getchar;
+	getchar();
 	//добавление остальных значений
 	CreateValue(hKey, L"STRING", REG_SZ, (LPCVOID)L"SomeString", (wcslen(L"SomeString") * sizeof(WCHAR))+1 );
 	CreateValue(hKey, L"DWORD", REG_DWORD, (LPCVOID)&dw32, sizeof(DWORD));
 	CreateValue(hKey, L"DWORD_BE", REG_DWORD_BIG_ENDIAN, (LPCVOID)&dw32, sizeof(DWORD));
 	CreateValue(hKey, L"BINARY", REG_BINARY, (LPCVOID)&dw32, sizeof(DWORD));
 	CreateValue(hKey, L"QWORD", REG_QWORD, (LPCVOID)&dw64, sizeof(DWORD64));
-	
-/*
-	BYTE* data = (BYTE*)calloc(4, 1);
-	data[1] = 1;
-	//Создаёт пару ключ-значение
-	LSTATUS status1 = RegSetValueEx(hKey, L"PARAM", NULL, REG_DWORD, data, 4);
-	LSTATUS status2 = RegDeleteValue(hKey, L"PARAM");
-
-	DWORD iIndex = 0;
-	LPWSTR wstr = (LPWSTR)calloc(SIZE_STR + 1, sizeof(WCHAR));
-
-	while (RegEnumKey(hKey, iIndex, wstr, SIZE_STR) ==
-		ERROR_SUCCESS)
-	{
-		++iIndex;
-	}*/
-	//RegCloseKey(hKey);
-
+	//поиск ключа(выборка)
+	OpenKey(HKEY_CURRENT_USER, L"SOFTWARE", tmp);
+	GetKeys(tmp);
+	CloseKey(tmp);
+	getchar();
 	//закрытие ключа
-	cout << CloseKey(hKey) << endl;
+	if (CloseKey(hKey))
+		cout << "Key was closed" << endl;
+	else
+		cout << "Cannot close key" << endl;
 
 	cout << "Complete" << endl;
 }
