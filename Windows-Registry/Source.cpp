@@ -17,6 +17,24 @@ void GetFlags()
 	system("REG FLAGS HKLM\\Software");
 }
 
+void GetValues(HKEY &hKey)
+{
+	DWORD index = 0;
+	DWORD length = BUFFER_LENGTH + 1;
+	DWORD lpType = 9;
+	LPWSTR buffer = (LPWSTR)calloc(length - 1, sizeof(WCHAR));
+	LPBYTE data = (LPBYTE)calloc(length - 1, sizeof(BYTE));
+	while (RegEnumValueW(hKey, index, buffer, &length, NULL, &lpType, data, &length) == ERROR_SUCCESS)
+	{
+		length = BUFFER_LENGTH + 1;
+		wcout << buffer << " - ";
+		if (lpType != 1)
+			wcout << *(LPDWORD)data << endl;
+		else
+			wcout << (LPWSTR)data << endl;
+		index++;
+	}
+}
 bool CloseKey(HKEY &hKey)
 {
 	LSTATUS result;
@@ -70,7 +88,9 @@ int main()
 	DWORD dw32 = 13;
 	DWORD64 dw64 = 123;
 	
-	//создание ключа
+	cout << "Press enter to start" << endl;
+	getchar();
+	//создание ключа 
 	if (CreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\OSISP-LAB4", hKey))
 		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was created" << endl;
 	else
@@ -103,6 +123,10 @@ int main()
 	//чтение маски
 	cout << "Flags of HKLM/SOFTWARE:" << endl;
 	GetFlags();
+
+	cout << "Are you ready to see changes?" << endl;
+	getchar();
+	GetValues(hKey);
 	//закрытие ключа
 	if (CloseKey(hKey))
 		cout << "Key HKEY_CURRENT_USER\\SOFTWARE\\OSISP-LAB4 was closed" << endl;
